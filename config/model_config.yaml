@@ -1,0 +1,11 @@
+data:
+  test_size: 0.2
+  random_state: 42
+
+training:
+  optuna_n_trials: 50
+  random_state: 42
+
+risk_bands:
+  low: 0.3
+  medium: 0.6
