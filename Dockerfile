@@ -3,9 +3,9 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY pyproject.toml .
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir --prefix=/install -r requirements.txt
+    pip install --no-cache-dir --prefix=/install .
 
 
 # ── Stage 2: api ──────────────────────────────────────────────────────────────
@@ -14,14 +14,14 @@ FROM python:3.11-slim AS api
 WORKDIR /app
 
 COPY --from=builder /install /usr/local
-COPY api/ ./api/
+COPY src/ ./src/
 COPY config/ ./config/
 
 ENV PYTHONPATH=/app
 
 EXPOSE 8000
 
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 
 # ── Stage 3: dashboard ────────────────────────────────────────────────────────
@@ -30,11 +30,11 @@ FROM python:3.11-slim AS dashboard
 WORKDIR /app
 
 COPY --from=builder /install /usr/local
-COPY dashboard/ ./dashboard/
+COPY app/ ./app/
 COPY config/ ./config/
 
 ENV PYTHONPATH=/app
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "dashboard/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
