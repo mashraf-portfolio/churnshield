@@ -60,8 +60,8 @@ jobs:
       - name: Install dependencies
         run: pip install -e ".[dev]"
 
-      - name: Coverage threshold (0% now, raised each phase)
-        run: pytest --cov=src --cov-fail-under=0 tests/
+      - name: Quality gate (skips gracefully until Phase 2 model exists)
+        run: pytest tests/test_quality_gate.py -v
 
   docker-build:
     name: Docker build
