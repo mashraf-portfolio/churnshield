@@ -1,21 +1,13 @@
 # Data
 data/*.csv
-data/*.parquet
+data/*.xlsx
+!data/prediction_log.csv
 
 # Models
 models/
 
-# Notebooks
-notebooks/
-*.ipynb
-
-# Docs / design artefacts
-*.docx
-*.xlsx
-
 # Environment
 .env
-.env.local
 
 # Python
 __pycache__/

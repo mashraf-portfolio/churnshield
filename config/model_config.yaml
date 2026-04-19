@@ -4,10 +4,28 @@ data:
 
 training:
   optuna_n_trials: 50
+  optuna_timeout: 300
   random_state: 42
+  xgb_search_space:
+    max_depth: [3, 8]
+    learning_rate: [0.01, 0.3]
+    n_estimators: [100, 500]
+    subsample: [0.6, 1.0]
+    colsample_bytree: [0.6, 1.0]
+
+calibration:
+  method: isotonic
+  cv: 5
+
+threshold_policy:
+  method: max_f1
+
+quality_gate_roc_auc: 0.82
+
+batch_row_cap: 10000
+
+shap_top_k: 10
 
 risk_bands:
   low: 0.3
   medium: 0.6
-
-quality_gate_roc_auc: 0.80
