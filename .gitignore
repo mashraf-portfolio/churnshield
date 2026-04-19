@@ -1,11 +1,21 @@
 # Data
 data/*.csv
+data/*.parquet
 
 # Models
 models/
 
+# Notebooks
+notebooks/
+*.ipynb
+
+# Docs / design artefacts
+*.docx
+*.xlsx
+
 # Environment
 .env
+.env.local
 
 # Python
 __pycache__/
