@@ -1,84 +1,64 @@
-"""Pure pandas feature-engineering functions for ChurnShield.
-
-No I/O, no sklearn. Every function accepts a DataFrame and returns a new
-DataFrame with one additional column appended.
-"""
+"""Feature engineering for ChurnShield. Called before ColumnTransformer."""
 
 import pandas as pd
 
-_ADD_ON_SERVICES = [
-    "Online Security",
-    "Online Backup",
-    "Device Protection",
-    "Tech Support",
-    "Streaming TV",
-    "Streaming Movies",
-]
-
-_CONTRACT_RISK = {
-    "Month-to-month": 2,
-    "One year": 1,
-    "Two year": 0,
-}
-
-_TENURE_LABELS = ["0-12", "13-24", "25-36", "37-48", "49-60", "61+"]
-_TENURE_BINS = [0, 12, 24, 36, 48, 60, float("inf")]
-
 
 def tenure_bucket(df: pd.DataFrame) -> pd.DataFrame:
-    """Bin 'Tenure Months' into six labelled cohorts → 'tenure_bucket'."""
+    """Bin Tenure Months into 4 cohorts. Bins start at -1 to include tenure=0."""
     df = df.copy()
     df["tenure_bucket"] = pd.cut(
         df["Tenure Months"],
-        bins=_TENURE_BINS,
-        labels=_TENURE_LABELS,
-        right=True,
-        include_lowest=True,
+        bins=[-1, 12, 24, 48, float("inf")],
+        labels=["new", "growing", "established", "loyal"],
     )
     return df
 
 
-def contract_risk(df: pd.DataFrame) -> pd.DataFrame:
-    """Map 'Contract' to an ordinal risk score (2=high, 1=mid, 0=low) → 'contract_risk'."""
+def charges_per_month_ratio(df: pd.DataFrame) -> pd.DataFrame:
+    """Total Charges divided by tenure+1. Measures spending consistency."""
     df = df.copy()
-    df["contract_risk"] = df["Contract"].map(_CONTRACT_RISK).astype("Int8")
+    df["charges_per_month_ratio"] = df["Total Charges"] / (df["Tenure Months"] + 1)
     return df
 
 
-def service_count(df: pd.DataFrame) -> pd.DataFrame:
-    """Count add-on services the customer subscribes to (Yes = 1) → 'service_count'."""
+def contract_risk_score(df: pd.DataFrame) -> pd.DataFrame:
+    """Ordinal risk score: Month-to-month=2, One year=1, Two year=0."""
     df = df.copy()
-    df["service_count"] = df[_ADD_ON_SERVICES].eq("Yes").sum(axis=1).astype("int8")
+    mapping = {"Month-to-month": 2, "One year": 1, "Two year": 0}
+    df["contract_risk_score"] = df["Contract"].map(mapping)
     return df
 
 
-def monthly_charges_bin(df: pd.DataFrame) -> pd.DataFrame:
-    """Quartile-bin 'Monthly Charges' into four spend tiers → 'monthly_charges_bin'."""
+def service_bundle_count(df: pd.DataFrame) -> pd.DataFrame:
+    """Count of active add-on services (0-6)."""
     df = df.copy()
-    df["monthly_charges_bin"] = pd.qcut(
-        df["Monthly Charges"],
-        q=4,
-        labels=["low", "mid-low", "mid-high", "high"],
-        duplicates="drop",
+    services = [
+        "Online Security",
+        "Online Backup",
+        "Device Protection",
+        "Tech Support",
+        "Streaming TV",
+        "Streaming Movies",
+    ]
+    df["service_bundle_count"] = (df[services] == "Yes").sum(axis=1)
+    return df
+
+
+def high_value_flag(df: pd.DataFrame) -> pd.DataFrame:
+    """Binary flag: 1 if Total Charges above median, else 0."""
+    df = df.copy()
+    df["high_value_flag"] = (df["Total Charges"] > df["Total Charges"].median()).astype(
+        int
     )
-    return df
-
-
-def spend_per_tenure(df: pd.DataFrame) -> pd.DataFrame:
-    """Compute monthly spend rate normalised by tenure → 'spend_per_tenure'.
-
-    Tenure is shifted by +1 to avoid division-by-zero for new customers.
-    """
-    df = df.copy()
-    df["spend_per_tenure"] = df["Monthly Charges"] / (df["Tenure Months"] + 1)
     return df
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Apply all five feature transforms in sequence and return enriched DataFrame."""
+    """Apply all 5 feature engineering functions in order. Returns a copy."""
+    df = df.copy()
     df = tenure_bucket(df)
-    df = contract_risk(df)
-    df = service_count(df)
-    df = monthly_charges_bin(df)
-    df = spend_per_tenure(df)
+    df = charges_per_month_ratio(df)
+    df = contract_risk_score(df)
+    df = service_bundle_count(df)
+    df = high_value_flag(df)
     return df
