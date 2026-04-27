@@ -50,16 +50,25 @@ async def lifespan(app: FastAPI):
     meta_path = Path(os.getenv("METADATA_PATH", "models/metadata.json"))
     log_path = Path(os.getenv("PREDICTION_LOG_PATH", "data/prediction_log.csv"))
 
-    model, preprocessor, metadata, explainer = load_artifacts(
-        model_path, pre_path, meta_path
-    )
-    app.state.model = model
-    app.state.preprocessor = preprocessor
-    app.state.metadata = metadata
-    app.state.explainer = explainer
-    app.state.log_path = log_path
+    try:
+        model, preprocessor, metadata, explainer = load_artifacts(
+            model_path, pre_path, meta_path
+        )
+        app.state.model = model
+        app.state.preprocessor = preprocessor
+        app.state.metadata = metadata
+        app.state.explainer = explainer
+        logger.info("ChurnShield API ready")
+    except FileNotFoundError as exc:
+        logger.warning(
+            "Model artifacts not found: %s. API will run in degraded mode.", exc
+        )
+        app.state.model = None
+        app.state.preprocessor = None
+        app.state.metadata = None
+        app.state.explainer = None
 
-    logger.info("ChurnShield API ready")
+    app.state.log_path = log_path
     yield
     logger.info("ChurnShield API shutting down")
 
