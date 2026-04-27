@@ -1,0 +1,6 @@
+customer_id,tenure,monthly_charges,total_charges,contract,internet_service,payment_method,senior_citizen,partner,dependents,phone_service,multiple_lines,online_security,online_backup,device_protection,tech_support,streaming_tv,streaming_movies,paperless_billing,gender
+HIGH-001,3,89.95,269.85,Month-to-month,Fiber optic,Electronic check,0,No,No,Yes,No,No,No,No,No,Yes,Yes,Yes,Male
+HIGH-002,5,95.50,477.50,Month-to-month,Fiber optic,Electronic check,1,No,No,Yes,Yes,No,No,No,No,Yes,Yes,Yes,Female
+MID-001,24,55.00,1320.00,One year,DSL,Mailed check,0,Yes,No,Yes,No,Yes,No,Yes,No,No,Yes,Yes,Male
+LOW-001,60,30.00,1800.00,Two year,DSL,Bank transfer (automatic),0,Yes,Yes,Yes,No,Yes,Yes,Yes,Yes,No,No,No,Female
+LOW-002,72,25.50,1836.00,Two year,No,Credit card (automatic),0,Yes,Yes,Yes,No,No internet service,No internet service,No internet service,No internet service,No internet service,No internet service,No,Male

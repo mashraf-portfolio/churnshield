@@ -2,6 +2,7 @@
 data/*.csv
 data/*.xlsx
 !data/prediction_log.csv
+!data/sample_batch.csv
 
 # Models
 models/*
