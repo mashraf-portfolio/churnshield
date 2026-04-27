@@ -25,6 +25,13 @@ from sklearn.metrics import (
 from sklearn.model_selection import cross_val_score
 from xgboost import XGBClassifier
 
+from src.evaluation import (
+    plot_calibration_curve,
+    plot_confusion_matrix,
+    plot_feature_importance,
+    plot_pr_curve,
+    plot_roc_curve,
+)
 from src.preprocessing import preprocess
 
 logger = logging.getLogger(__name__)
@@ -257,6 +264,16 @@ def main(data_dir: Path) -> None:
     calibrated = _calibrate(winner, X_tr, y_tr)
     cal_metrics = _evaluate(calibrated, X_te, y_te, f"{winner_name} (calibrated)")
     threshold = _select_threshold(calibrated, X_te, y_te)
+
+    logger.info("Generating plots...")
+    y_proba_uncal = winner.predict_proba(X_te)[:, 1]
+    y_proba_cal = calibrated.predict_proba(X_te)[:, 1]
+    plot_confusion_matrix(y_te, y_proba_cal, threshold)
+    plot_roc_curve(y_te, y_proba_cal)
+    plot_pr_curve(y_te, y_proba_cal, threshold=threshold)
+    plot_calibration_curve(y_te, y_proba_uncal, y_proba_cal)
+    plot_feature_importance(calibrated, feature_names)
+    logger.info("Plots saved to models/plots/")
 
     _save_artifacts(
         model=calibrated,
