@@ -207,9 +207,12 @@ def _save_artifacts(
     threshold: float,
     best_params: dict | None,
     comparison: list[dict],
+    n_train: int,
     models_dir: Path = Path("models"),
 ) -> None:
     """Persist model, metadata, and comparison CSV to models/."""
+    from datetime import UTC, datetime
+
     models_dir.mkdir(exist_ok=True)
     joblib.dump(model, models_dir / "churnshield_model.joblib")
 
@@ -220,10 +223,12 @@ def _save_artifacts(
         "version": "1.0.0",
         "roc_auc": metrics["roc_auc"],
         "pr_auc": metrics["pr_auc"],
-        "f1_at_05": metrics["f1_at_05"],
-        "brier": metrics["brier"],
+        "f1": metrics["f1_at_05"],
+        "brier_score": metrics["brier"],
         "optimal_threshold": threshold,
         "feature_names": feature_names,
+        "trained_at": datetime.now(UTC).isoformat(),
+        "n_train": n_train,
         "optuna_best_params": best_params,
     }
     (models_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
@@ -283,6 +288,7 @@ def main(data_dir: Path) -> None:
         threshold=threshold,
         best_params=best_params_by_name[winner_name],
         comparison=comparison,
+        n_train=len(X_tr),
     )
     logger.info("Training pipeline complete.")
 
