@@ -4,7 +4,7 @@ data/*.xlsx
 !data/prediction_log.csv
 
 # Models
-models/
+models/*
 
 # Environment
 .env
@@ -43,3 +43,17 @@ Thumbs.db
 
 # Docker
 *.log
+
+# Claude Code local config
+.claude/
+
+# CatBoost training cruft
+catboost_info/
+
+# MS Word lock files
+~$*.docx
+~$*.doc
+
+# Models directory ignored EXCEPT plots (needed for README)
+!models/plots/
+!models/plots/*.png
