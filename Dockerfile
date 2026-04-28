@@ -17,6 +17,10 @@ COPY --from=builder /install /usr/local
 COPY src/ ./src/
 COPY config/ ./config/
 
+RUN mkdir -p /app/models /app/data
+COPY models* /app/models/
+COPY data/sample_batch.csv /app/data/
+
 ENV PYTHONPATH=/app
 
 EXPOSE 8000
@@ -34,6 +38,7 @@ WORKDIR /app
 
 COPY --from=builder /install /usr/local
 COPY app/ ./app/
+COPY src/ ./src/
 COPY config/ ./config/
 
 ENV PYTHONPATH=/app
