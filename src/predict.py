@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +10,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import shap
+from huggingface_hub import hf_hub_download
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +38,42 @@ FIELD_MAP = {
 }
 
 
+def _ensure_artifacts_local(
+    model_path: Path,
+    preprocessor_path: Path,
+    metadata_path: Path,
+) -> None:
+    """If any artifact is missing locally, download from HF Hub.
+    Files land in model_path.parent (typically 'models/')."""
+    if all(p.exists() for p in (model_path, preprocessor_path, metadata_path)):
+        return
+
+    repo_id = os.getenv("HF_MODEL_REPO", "MohammadAshraf213/churnshield")
+    target_dir = model_path.parent
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    logger.info("Local artifacts missing — downloading from HF Hub: %s", repo_id)
+    for filename, dest in [
+        ("churnshield_model.joblib", model_path),
+        ("preprocessor.joblib", preprocessor_path),
+        ("metadata.json", metadata_path),
+    ]:
+        if not dest.exists():
+            downloaded = hf_hub_download(
+                repo_id=repo_id,
+                filename=filename,
+                local_dir=str(target_dir),
+            )
+            logger.info("Downloaded %s -> %s", filename, downloaded)
+
+
 def load_artifacts(
     model_path: Path,
     preprocessor_path: Path,
     metadata_path: Path,
 ) -> tuple[Any, Any, dict, Any]:
     """Load model, preprocessor, metadata, and a SHAP TreeExplainer."""
+    _ensure_artifacts_local(model_path, preprocessor_path, metadata_path)
     model = joblib.load(model_path)
     preprocessor = joblib.load(preprocessor_path)
     metadata = json.loads(metadata_path.read_text())
@@ -95,11 +127,13 @@ def predict_single(
     for col in bin_cols:
         if col in df.columns:
             df[col] = df[col].map(
-                lambda v: "Yes"
-                if v in (1, True, "Yes")
-                else "No"
-                if v in (0, False, "No")
-                else v
+                lambda v: (
+                    "Yes"
+                    if v in (1, True, "Yes")
+                    else "No"
+                    if v in (0, False, "No")
+                    else v
+                )
             )
 
     df = engineer_features(df)
