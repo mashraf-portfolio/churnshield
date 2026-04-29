@@ -7,8 +7,8 @@ live monitoring, and a containerized deploy.
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **Live demo:** [Streamlit UI](#) — *(placeholder, link added after Railway + Streamlit Cloud deploy)*
-> **API docs:** [Swagger UI](#) — *(placeholder)*
+> **Live demo:** [churnsafe.streamlit.app](https://churnsafe.streamlit.app/)
+> **API docs:** [churnshield-production.up.railway.app/docs](https://churnshield-production.up.railway.app/docs)
 
 ## What it is
 
@@ -200,10 +200,12 @@ Highlights:
 The repo is set up for two-service deploy:
 
 - **FastAPI on Railway.** Builds from the `Dockerfile` (api stage).
-  `railway.toml` pins `healthcheckPath=/health` and a 30s timeout.
+  `railway.toml` pins `healthcheckPath=/health` and a 120s timeout.
+  Live: [churnshield-production.up.railway.app](https://churnshield-production.up.railway.app)
 - **Streamlit on Streamlit Community Cloud.** Builds from
-  `pyproject.toml`. Set `API_URL` in the secrets dashboard to the
-  Railway-issued URL.
+  `requirements.txt`. The `API_URL` secret in the Streamlit Cloud
+  dashboard points at the Railway backend.
+  Live: [churnsafe.streamlit.app](https://churnsafe.streamlit.app)
 
 Local Docker Compose mirrors this topology — `docker compose up`
 starts both services with the right networking
