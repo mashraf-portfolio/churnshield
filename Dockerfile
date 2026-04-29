@@ -8,7 +8,24 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir --prefix=/install .
 
 
-# --- Stage 2: api ---
+# --- Stage 2: dashboard ---
+FROM python:3.11-slim AS dashboard
+
+WORKDIR /app
+
+COPY --from=builder /install /usr/local
+COPY app/ ./app/
+COPY src/ ./src/
+COPY config/ ./config/
+
+ENV PYTHONPATH=/app
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "app/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+
+
+# --- Stage 3: api (last = Railway default target) ---
 FROM python:3.11-slim AS api
 
 WORKDIR /app
@@ -29,20 +46,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8000"]
-
-
-# --- Stage 3: dashboard ---
-FROM python:3.11-slim AS dashboard
-
-WORKDIR /app
-
-COPY --from=builder /install /usr/local
-COPY app/ ./app/
-COPY src/ ./src/
-COPY config/ ./config/
-
-ENV PYTHONPATH=/app
-
-EXPOSE 8501
-
-CMD ["streamlit", "run", "app/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
